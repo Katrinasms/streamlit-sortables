@@ -30,7 +30,8 @@ type Direction = 'horizontal' | 'vertical';
 interface StreamlitArguments {
   direction?: Direction,
   items: ContainerDescription[],
-  customStyle?: string
+  customStyle?: string,
+  remove?: Boolean
 }
 
 interface ContainerDescription {
@@ -67,7 +68,8 @@ function Container(props: ContainerProps) {
 
 interface SortableComponentProps {
   direction?: Direction,
-  items: ContainerDescription[]
+  items: ContainerDescription[],
+  remove?: Boolean
 }
 
 function SortableComponent(props: SortableComponentProps) {
@@ -106,6 +108,8 @@ function SortableComponent(props: SortableComponentProps) {
               {
                 items.map(item => {
                   return (
+                    props.remove ? 
+                    <SortableItem key={item} id={item} isActive={item === activeItem} onRemove={removeItem}>{item}</SortableItem>:
                     <SortableItem key={item} id={item} isActive={item === activeItem}>{item}</SortableItem>
                   )
                 })
@@ -231,6 +235,30 @@ function SortableComponent(props: SortableComponentProps) {
       });
     })
   }
+
+  function removeItem(id: any) {
+    const activeContainerIndex = findContainer(id);
+    const activeItemIndex = items[activeContainerIndex].items.indexOf(id);
+    const activeItem = items[activeContainerIndex].items[activeItemIndex];
+    const newItems = items.map(({ header, items }, index) => {
+      if (index === activeContainerIndex) {
+        return {
+          header: header,
+          items: items.filter(item => item !== activeItem)
+        }
+      } else {
+        return {
+          header: header,
+          items: items
+        }
+      }
+    })
+    setItems(newItems);
+
+    Streamlit.setComponentValue(newItems);
+    Streamlit.setFrameHeight();
+    
+  }
 }
 
 function SortableComponentWrapper(props: ComponentProps) {
@@ -243,7 +271,7 @@ function SortableComponentWrapper(props: ComponentProps) {
   return (
     <div className={className}> 
       <style>{args.customStyle}</style>
-      <SortableComponent items={items} direction={args.direction} />
+      <SortableComponent items={items} direction={args.direction} remove={args.remove}/>
     </div>
   )
 }

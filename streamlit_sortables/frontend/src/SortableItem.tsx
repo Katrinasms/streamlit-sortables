@@ -8,7 +8,8 @@ export interface SortableItemProps {
   id: string,
   isActive?: boolean,
   children?: ReactNode,
-  isOverlay?: boolean
+  isOverlay?: boolean,
+  onRemove?: (id:string) => void
 }
 
 export const SortableItem: FunctionComponent<SortableItemProps> = ((props) => {
@@ -47,7 +48,8 @@ export const SortableItem: FunctionComponent<SortableItemProps> = ((props) => {
 
     return (
       <li className={className} ref={sortableProps.setNodeRef} style={style} {...sortableProps.attributes} {...sortableProps.listeners}>
-        {props.children ? props.children : null}
+        <span className="li-content">{props.children ? props.children : null}</span>
+        {props.onRemove&&(<button className="cross-button" onClick={()=>props.onRemove!(props.id)}>×</button>)}
       </li>
     )
 })

@@ -47,7 +47,7 @@ else:
 # `declare_component` and call it done. The wrapper allows us to customize
 # our component's API: we can pre-process its input args, post-process its
 # output value, and add a docstring for users.
-def sort_items(items: list[T],  header: Optional[str]=None, multi_containers: bool=False, direction: str="horizontal", custom_style: Optional[str]=None, key: Any=None) -> list[T]:
+def sort_items(items: list[T],  header: Optional[str]=None, multi_containers: bool=False, direction: str="horizontal", custom_style: Optional[str]=None, key: Any=None, remove: bool=False) -> list[T]:
     """Create a new instance of "sortable_items".
 
     Parameters
@@ -69,6 +69,8 @@ def sort_items(items: list[T],  header: Optional[str]=None, multi_containers: bo
         An optional key that uniquely identifies this component. If this is
         None, and the component's arguments are changed, the component will
         be re-mounted in the Streamlit frontend and lose its current state.
+    remove: bool
+        If True, each item will contain a remove button. Defaults to False.
 
     Returns
     -------
@@ -86,7 +88,7 @@ def sort_items(items: list[T],  header: Optional[str]=None, multi_containers: bo
         if not all(map(lambda item: isinstance(item, dict), items)):
             raise ValueError('items must be list[dict[str, Any]] if multi_containers is True.')
 
-    component_value = _component_func(items=items, direction=direction, customStyle=custom_style, default=items, key=key)
+    component_value = _component_func(items=items, direction=direction, customStyle=custom_style, default=items, key=key, remove=remove)
 
     # We could modify the value returned from the component if we wanted.
     # There's no need to do this in our simple example - but it's an option.
@@ -224,5 +226,72 @@ if not _RELEASE:
     """
     sorted_items = sort_items(original_items, multi_containers=True, custom_style=custom_style)
 
+    st.write(f'original_items: {original_items}')
+    st.write(f'sorted_items: {sorted_items}')
+
+    st.write('----')
+    st.write('Sort items with remove.')
+    items = [
+        {'header': 'container1', 'items': ['item1', 'item2', 'item3']},
+        {'header': 'container2', 'items': ['item4', 'item5', 'item6']},
+    ]
+    sorted_items = sort_items(items, multi_containers=True, remove=True)
+    st.write(sorted_items)
+
+    st.write('----')
+    st.write('Sort items vertically with remove.')
+    items = [
+        {'header': 'container1', 'items': ['item1', 'item2', 'item3']},
+        {'header': 'container2', 'items': ['item4', 'item5', 'item6']},
+    ]
+    sorted_items = sort_items(items, multi_containers=True, direction="vertical", remove=True)
+    st.write(sorted_items)
+
+    st.write('----')
+    st.write('Advanced custom style.')
+    original_items = [
+        {'header': 'first container',  'items': ['A', 'B', 'C']},
+        {'header': 'second container', 'items': ['D', 'E', 'F']}
+    ]
+
+    custom_style = """
+    .sortable-component {
+        border: 3px solid #6495ED;
+        border-radius: 10px;
+        padding: 5px;
+    }
+    .sortable-container {
+        background-color: #F0F0F0;
+        counter-reset: item;
+    }
+    .sortable-container-header {
+        background-color: #FFBFDF;
+        padding-left: 1rem;
+    }
+    .sortable-container-body {
+        background-color: #F0F0F0;
+    }
+    .sortable-item, .sortable-item:hover {
+        background-color: #6495ED;
+        font-color: #FFFFFF;
+        font-weight: bold;
+    }
+    .sortable-item::before {
+        content: counter(item) ". ";
+        counter-increment: item;
+    }
+    .sortable-item.dragging::before {
+        content: none;
+        counter-increment: none;
+    }
+    .cross-button{
+        background-color: #FF6347;
+        color: #FFFFFF;
+        &:hover {
+            background-color: #FFBFDF;
+        }
+    }
+    """
+    sorted_items = sort_items(original_items, multi_containers=True, custom_style=custom_style, remove=True)
     st.write(f'original_items: {original_items}')
     st.write(f'sorted_items: {sorted_items}')
